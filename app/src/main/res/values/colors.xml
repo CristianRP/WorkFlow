@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#33691E</color>
+    <color name="colorPrimaryDark">#1B5E20</color>
+    <color name="colorAccent">#ac8964</color>
+    <color name="colorPrimaryLight">#C5CAE9</color>
+    <color name="colorDivider">#B6B6B6</color>
+    <color name="textColorPrimary">#000000</color>
+    <color name="windowBackground">#FFFFFF</color>
+    <color name="navigationBarColor">#1B5E20</color>
+    <color name="row_color">#b6eae5</color>
+    <color name="header_color">#54747e</color>
+
+    <!-- COLORES CUMPLIENTO -->
+    <color name="en_tiempo">#80d970</color> <!--73e45f-->
+    <color name="por_vencer">#e68a3b</color>
+    <color name="vencido">#d44d4d</color><!--f70a0a-->
+
+    <!--<color name="row_color">#c3e9e0</color>
+    <color name="header_color">#5a7866</color-->
+</resources>

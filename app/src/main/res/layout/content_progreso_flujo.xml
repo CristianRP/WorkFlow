@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto" android:layout_width="match_parent"
+    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    app:layout_behavior="@string/appbar_scrolling_view_behavior"
+    tools:showIn="@layout/activity_progreso_flujo"
+    tools:context="com.gruporosul.workflow.activity.ProgresoFlujoActivity">
+
+    <org.eazegraph.lib.charts.StackedBarChart
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/stackedbarchart"
+        android:layout_width="100dp"
+        android:layout_height="match_parent"
+        android:padding="10dp"
+        app:egFixedBarWidth="true"
+        app:egBarWidth="40dp"
+        app:egLegendHeight="40dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginTop="20dp" />
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_toRightOf="@+id/stackedbarchart"
+        android:layout_toEndOf="@+id/stackedbarchart"
+        android:layout_alignTop="@+id/stackedbarchart">
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtCorrelativo" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtCumplimiento"
+                android:layout_below="@+id/txtFechaProyectada"
+                android:layout_alignLeft="@+id/txtFechaProyectada"
+                android:layout_alignStart="@+id/txtFechaProyectada"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtCodFlujo"
+                android:layout_below="@+id/txtDescripcion"
+                android:layout_alignLeft="@+id/txtDescripcion"
+                android:layout_alignStart="@+id/txtDescripcion"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtTipo"
+                android:layout_below="@+id/txtAgrupador"
+                android:layout_alignLeft="@+id/txtAgrupador"
+                android:layout_alignStart="@+id/txtAgrupador"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtFecha"
+                android:layout_below="@+id/txtPasoActual"
+                android:layout_alignLeft="@+id/txtPasoActual"
+                android:layout_alignStart="@+id/txtPasoActual"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtPasosActuales"
+                android:layout_below="@+id/txtCumplimiento"
+                android:layout_alignLeft="@+id/txtCumplimiento"
+                android:layout_alignStart="@+id/txtCumplimiento"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtPasoActual"
+                android:layout_below="@+id/txtTipo"
+                android:layout_alignLeft="@+id/txtTipo"
+                android:layout_alignStart="@+id/txtTipo"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtDescripcion"
+                android:layout_below="@+id/txtIdentificador"
+                android:layout_alignLeft="@+id/txtIdentificador"
+                android:layout_alignStart="@+id/txtIdentificador"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtAgrupador"
+                android:layout_below="@+id/txtCodFlujo"
+                android:layout_alignLeft="@+id/txtCodFlujo"
+                android:layout_alignStart="@+id/txtCodFlujo"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtIdentificador"
+                android:layout_below="@+id/txtCorrelativo"
+                android:layout_alignLeft="@+id/txtCorrelativo"
+                android:layout_alignStart="@+id/txtCorrelativo"
+                android:layout_marginTop="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:id="@+id/txtFechaProyectada"
+                android:layout_below="@+id/txtFecha"
+                android:layout_alignLeft="@+id/txtFecha"
+                android:layout_alignStart="@+id/txtFecha"
+                android:layout_marginTop="10dp" />
+        </RelativeLayout>
+
+    </ScrollView>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/title_fin"
+        android:id="@+id/textView"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:text="@string/title_inicio"
+        android:id="@+id/textView2"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+</RelativeLayout>

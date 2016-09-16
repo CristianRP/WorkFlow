@@ -1,0 +1,147 @@
+<resources>
+    <string name="app_name">Work Flow</string>
+    <string name="action_settings">Settings</string>
+    
+    <!-- STRINGS MAIN ACTIVITY -->
+    <string name="txt_titulo_tipo">Tipo</string>
+    <string name="txt_titulo_estado">Estado</string>
+    <string name="txt_titulo">Work Flow</string>
+    <string name="txt_title_dialog">Estado</string>
+    <string name="estado_activo">Activo</string>
+    <string name="estado_finalizado">Finalizado</string>
+    <string name="ok">Ok</string>
+    <string name="cancelar">Cancelar</string>
+    <array name="estado">
+        <item> @string/estado_activo </item>
+        <item> @string/estado_finalizado </item>
+    </array>
+
+    <!-- STRINGS AGRUPADOR ACTIVITY -->
+    <string name="title_activity_agrupador">AgrupadorActivity</string>
+
+    <!-- STRINGS FLUJOS ACTIVITY -->
+    <string name="title_activity_flujos">Flujos</string>
+    <string name="txt_row_id">ID</string>
+    <string name="txt_row_nombre">Nombre</string>
+    <string name="txt_row_cumplimiento">Cumplimiento</string>
+    <string name="title_activity_progreso_flujo">ProgresoFlujoActivity</string>
+    <string name="title_activity_flow_detail">FlowDetailActivity</string>
+
+    <!-- STRINGS TABLE -->
+    <string name="default_text_da">0</string>
+    <string name="separator">/</string>
+    <string name="default_text_td">0</string>
+
+    <!-- STRINGS PROGRESO FLUJO -->
+    <string name="correlativo">
+        <![CDATA[
+            <b>Correlativo:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="identificador">
+        <![CDATA[
+            <b>Identificador:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="descripcion">
+        <![CDATA[
+            <b>Nombre/Descripción:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="codFlujo">
+        <![CDATA[
+            <b>Codigo Flujo:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="agrupador">
+        <![CDATA[
+            <b>Agrupador:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="tipo">
+        <![CDATA[
+            <b>Tipo:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="fecha">
+        <![CDATA[
+            <b>Fecha:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="fecha_proyectada">
+        <![CDATA[
+            <b>Fecha Proyectada:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="paso_actual">
+        <![CDATA[
+            <b>Paso Actual:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="cumplimiento">
+        <![CDATA[
+            <b>Cumplimiento:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="pasos_actuales">
+        <![CDATA[
+            <b>Pasos Actuales:</b> \n <br/>
+            %1$s
+        ]]>
+    </string>
+    <string name="title_fin">Fin</string>
+    <string name="title_inicio">Inicio</string>
+
+    <!-- History STRINGS -->
+    <string name="fecha_inicial">Fecha Inicial: %1$s</string>
+    <string name="fecha_final">Fecha Final: %1$s</string>
+    <string name="dias_ejecutados">Dias Ejecu.: %1$s</string>
+    <string name="duracion_presupuestada">Duración Presupuestada: %1$s</string>
+    <string name="estado">Estado: %1$s</string>
+    <string name="usuario">Usuario: %1$s</string>
+
+
+    <!-- Strings activity login -->
+    <string name="title_activity_login">Inicio de Sesión</string>
+    <string name="prompt_user">Usuario</string>
+    <string name="prompt_password">Contraseña</string>
+    <string name="btn_sign_in">Iniciar Sesión</string>
+    <string name="error_user_field_required">El usuario es requerido</string>
+    <string name="error_password_field_required">La contraseña es requerida</string>
+    <string name="content_login">
+        <![CDATA[
+            <b>Bienvenido,</b> \n <br/>
+            para usar la apliación debes iniciar sesión.
+        ]]>
+    </string>
+    <string name="login_error">Revisa tus datos.</string>
+    <string name="action_loading">Cargando&#8230;</string>
+    <string name="log_out_item">Cerrar Sesión</string>
+
+    <!-- CRASH ACTIVITY -->
+    <string name="customactivityoncrash_error_activity_error_occurred_explanation">
+        A ocurrido un error inesperado.\n
+        Perdón por el inconveniente. \n
+        Departamento de IT Grupo Rosul.
+    </string>
+    <string name="customactivityoncrash_error_activity_unknown_exception">Excepción desconocida.</string>
+    <string name="customactivityoncrash_error_activity_restart_app">Reiniciar App</string>
+    <string name="customactivityoncrash_error_activity_close_app">Cerrar App</string>
+    <string name="customactivityoncrash_error_activity_error_details">Detalles del Error</string>
+    <string name="customactivityoncrash_error_activity_error_details_title">Detalles del Error</string>
+    <string name="customactivityoncrash_error_activity_error_details_close">Cerrar</string>
+    <string name="customactivityoncrash_error_activity_error_details_copy">Copiar al portapapeles</string>
+    <string name="customactivityoncrash_error_activity_error_details_copied">Copiado al portapapeles</string>
+    <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Información del error</string>
+
+</resources>
