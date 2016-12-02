@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Work Flow</string>
     <string name="action_settings">Settings</string>
-    
+
     <!-- STRINGS MAIN ACTIVITY -->
     <string name="txt_titulo_tipo">Tipo</string>
     <string name="txt_titulo_estado">Estado</string>
@@ -12,8 +12,8 @@
     <string name="ok">Ok</string>
     <string name="cancelar">Cancelar</string>
     <array name="estado">
-        <item> @string/estado_activo </item>
-        <item> @string/estado_finalizado </item>
+        <item>@string/estado_activo</item>
+        <item>@string/estado_finalizado</item>
     </array>
 
     <!-- STRINGS AGRUPADOR ACTIVITY -->
@@ -143,5 +143,21 @@
     <string name="customactivityoncrash_error_activity_error_details_copy">Copiar al portapapeles</string>
     <string name="customactivityoncrash_error_activity_error_details_copied">Copiado al portapapeles</string>
     <string name="customactivityoncrash_error_activity_error_details_clipboard_label">Información del error</string>
+
+
+    <!-- Seguimiento Workflow -->
+    <string name="fab_historico">Historico</string>
+    <string name="fab_seguimiento">Seguimiento</string>
+    <string name="dialog_next_step">Avance de work flow</string>
+    <string name="dialog_op_si">Si</string>
+    <string name="dialog_op_no">No</string>
+    <array name="items_dialog_next_step">
+        <item>@string/dialog_op_si</item>
+        <item>@string/dialog_op_no</item>
+    </array>
+    <string name="dialog_op_aceptar">Aceptar</string>
+    <string name="dialog_op_cancelar">Cancelar</string>
+    <string name="dialog_op_default">Tiene que seleccionar una opción</string>
+    <string name="title_activity_comodin">Ingresar comodines</string>
 
 </resources>

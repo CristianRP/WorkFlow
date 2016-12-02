@@ -6,7 +6,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
+import android.support.design.widget.CoordinatorLayout;
+import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -16,9 +17,20 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
 import com.gruporosul.workflow.R;
+import com.gruporosul.workflow.bean.Comodin;
 import com.gruporosul.workflow.bean.FlowProgress;
+import com.gruporosul.workflow.preferences.PrefManager;
+import com.gruporosul.workflow.volley.AppController;
+import com.gruporosul.workflow.xml.ParserXmlComodin;
 import com.gruporosul.workflow.xml.ParserXmlFlowProgress;
 
 import org.eazegraph.lib.charts.StackedBarChart;
@@ -30,21 +42,60 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
+import butterknife.BindArray;
+import butterknife.BindString;
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 public class  ProgresoFlujoActivity extends AppCompatActivity {
 
+    @BindString(R.string.dialog_next_step)
+    String titleDialog;
+    @BindArray(R.array.items_dialog_next_step)
+    String[] itemsDialog;
+    @BindString(R.string.dialog_op_aceptar)
+    String strAceptar;
+    @BindString(R.string.dialog_op_cancelar)
+    String strCancelar;
+    @BindString(R.string.dialog_op_default)
+    String strDefault;
+    @BindView(R.id.coordinatorProgresoFlujo)
+    CoordinatorLayout mCoordinatorProgresoFlujo;
+
     private ProgressDialog mProgressDialog;
-    private FloatingActionButton fabDetalle;
+    private PrefManager mPrefManager;
 
     private final static String URL =
             "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_Detail_List?";
+
+    private static final String get_comodines =
+            "http://200.30.160.117:8070/Servicioclientes.asmx/wf_get_prototipo_comodin?correlativo=%s&afecta=%s";
+
+    private static final String update_ctrl_flujo = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_update_ctrl_flujo";
+
+    private static final String insert_ctrl_flujo = "http://200.30.160.117:8070/ServicioClientes.asmx/wf_insert_ctr_flujo";
+
+    private String correaltivoFlujo;
+    private String correlativoActual;
+    private String correaltivoSiguiente;
+    private String afecta;
+    private String secuencia;
+    private String tipoFlujo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_progreso_flujo);
+
+        ButterKnife.bind(this);
+
+        mPrefManager = new PrefManager(this);
 
         if (getIntent().getStringExtra("descripcion") != null && getIntent().getStringExtra("id") != null && getIntent().getStringExtra("agrupador") != null) {
             setToolbar(getIntent().getStringExtra("id") + "/" +
@@ -63,19 +114,62 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         mProgressDialog.setMessage("Cargando...");
         mProgressDialog.show();
 
-        fabDetalle = (FloatingActionButton) findViewById(R.id.detallePasos);
-        fabDetalle.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent detalle = new Intent(ProgresoFlujoActivity.this, FlowDetailActivity.class);
-                detalle.putExtra("correlativo", getIntent().getStringExtra("correlativo"));
-                detalle.putExtra("id", getIntent().getStringExtra("id"));
-                detalle.putExtra("descripcion", getIntent().getStringExtra("descripcion"));
-                detalle.putExtra("agrupador", getIntent().getStringExtra("agrupador"));
-                startActivity(detalle);
-            }
-        });
+    }
 
+    @OnClick(R.id.fabHistorico)
+    void showHistoryOfWF() {
+        Intent detalle = new Intent(ProgresoFlujoActivity.this, FlowDetailActivity.class);
+        detalle.putExtra("correlativo", getIntent().getStringExtra("correlativo"));
+        detalle.putExtra("id", getIntent().getStringExtra("id"));
+        detalle.putExtra("descripcion", getIntent().getStringExtra("descripcion"));
+        detalle.putExtra("agrupador", getIntent().getStringExtra("agrupador"));
+        startActivity(detalle);
+    }
+
+    @OnClick(R.id.fabSeguimiento)
+    void showNextStep() {
+        showNextStepDialog();
+    }
+
+    private void showNextStepDialog() {
+        new MaterialDialog.Builder(this)
+                .title(titleDialog)
+                .items(itemsDialog)
+                .positiveText(strAceptar)
+                .negativeText(strCancelar)
+                .itemsCallbackSingleChoice(-1, new MaterialDialog.ListCallbackSingleChoice() {
+                    @Override
+                    public boolean onSelection(MaterialDialog dialog, View itemView, int which, CharSequence text) {
+                        switch (which) {
+                            case 0:
+                                FlowProgress flow = FlowProgress.getItem(getIntent().getStringExtra("correlativo"));
+                                new GetComodines().execute(String.format(get_comodines, flow.getCorrelativoActual(),
+                                        text));
+                                correaltivoFlujo = flow.getCorrelativoFlujo();
+                                correlativoActual = flow.getCorrelativoActual();
+
+                                afecta = text.toString();
+                                if (afecta.toLowerCase().equals("si")) {
+                                    correaltivoSiguiente = flow.getCorrelativoSi();
+                                } else {
+                                    correaltivoSiguiente = flow.getCorrelativoNo();
+                                }
+                                Log.e("CORRELATIVO_SIGUIENTE", correaltivoSiguiente);
+                                secuencia = flow.getSecuencia();
+                                tipoFlujo = flow.getTipo();
+                                Toast.makeText(ProgresoFlujoActivity.this, ":v op 1" + text, Toast.LENGTH_SHORT).show();
+                                break;
+                            case 1:
+                                Toast.makeText(ProgresoFlujoActivity.this, ":v op 2", Toast.LENGTH_SHORT).show();
+                                break;
+                            default:
+                                Snackbar.make(mCoordinatorProgresoFlujo, strDefault, Snackbar.LENGTH_LONG).show();
+                                break;
+                        }
+                        return true;
+                    }
+                })
+                .show();
     }
 
     /**
@@ -247,6 +341,156 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
     public void clear() {
         FlowProgress.FLUJO.clear();
+    }
+
+    private class GetComodines extends AsyncTask<String, Void, List<Comodin>> {
+
+        @Override
+        protected List<Comodin> doInBackground(String... urls) {
+            try {
+                Log.e("hao", urls[0]);
+                return parsearXmlDeUrl(urls[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<Comodin> items) {
+
+            Comodin.LISTA_COMODINES = items;
+
+            mProgressDialog.dismiss();
+            
+            if (Comodin.LISTA_COMODINES.size() <= 0) {
+                Toast.makeText(ProgresoFlujoActivity.this, "No tiene comodines, se procedera a avanzar el paso", Toast.LENGTH_SHORT).show();
+                mProgressDialog = new ProgressDialog(ProgresoFlujoActivity.this);
+                mProgressDialog.setMessage("Cargando...");
+                //mProgressDialog.show();
+                updateStatusControlFlujo(correaltivoFlujo, correlativoActual, "P");
+            } else {
+                Intent comodines = new Intent(ProgresoFlujoActivity.this, ComodinActivity.class);
+                try {
+                    comodines.putExtra("correlativo", correlativoActual);
+                    comodines.putExtra("afecta", afecta);
+                    startActivity(comodines);
+                } catch (NullPointerException npe) {
+                    Toast.makeText(ProgresoFlujoActivity.this, "No se pudo encontrar el correlativo actual", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+
+        }
+
+        private List<Comodin> parsearXmlDeUrl(String urlString)
+                throws XmlPullParserException, IOException {
+
+            InputStream mInputStream = null;
+            ParserXmlComodin mParserXmlComodin = new ParserXmlComodin();
+            List<Comodin> items = null;
+
+            try {
+
+                mInputStream = descargarContenido(urlString);
+                items = mParserXmlComodin.parsear(mInputStream);
+
+            } finally {
+                if (mInputStream != null) {
+                    mInputStream.close();
+                }
+            }
+
+            return items;
+
+        }
+
+        private InputStream descargarContenido(String urlString)
+                throws IOException {
+
+            java.net.URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(25000);
+            connection.setConnectTimeout(30000);
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            return connection.getInputStream();
+
+        }
+
+    }
+
+    public void updateStatusControlFlujo(final String correlativoFlujo, final String correlativo, final String estado) {
+        StringRequest updateStatus = new StringRequest(
+                Request.Method.POST,
+                update_ctrl_flujo,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("actaulizado", "actualizdado con exito");
+                        insertControlFlujo(correaltivoFlujo, correaltivoSiguiente, "A",
+                                mPrefManager.getKeyUser(), secuencia, tipoFlujo);
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                        Log.e("insert_control", "fail con exito" + error.getMessage());
+
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("correlativoFlujo", correlativoFlujo);
+                params.put("correlativo", correlativo);
+                params.put("estado", estado);
+                return params;
+            }
+        };
+        AppController.getInstance().addToRequestQueue(updateStatus);
+    }
+
+    public void insertControlFlujo(final String correlativoFlujo, final String correlativoComodin,
+                                    final String estado, final String usuario, final String secuencia,
+                                    final String tipoFlujo) {
+        StringRequest insertControl = new StringRequest(
+                Request.Method.POST,
+                insert_ctrl_flujo,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("insert_control", "Ingresado con exito");
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                        Log.e("insert_control", "fail " + error.getMessage().toLowerCase().toString());
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("correlativoFlujo", correlativoFlujo);
+                params.put("correlativoComodin", correlativoComodin);
+                params.put("estado", estado);
+                params.put("usuario", usuario);
+                params.put("secuencia", secuencia);
+                params.put("tipoFlujo", tipoFlujo);
+                return params;
+            }
+        };
+
+        AppController.getInstance().addToRequestQueue(insertControl);
     }
 
 }

@@ -91,7 +91,7 @@ public class MainActivity extends AppCompatActivity
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             // Establecer icono del drawer toggle
-            actionBar.setHomeAsUpIndicator(R.drawable.rsz_icon);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_flujo_de_trabajo);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }

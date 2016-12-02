@@ -30,8 +30,9 @@ import com.gruporosul.workflow.volley.AppController;
 import java.util.HashMap;
 import java.util.Map;
 
-import butterknife.Bind;
+import butterknife.BindView;
 import butterknife.ButterKnife;
+import butterknife.OnClick;
 
 /**
  * Created by Cristian Ramírez on 17-Dec-15.
@@ -51,17 +52,17 @@ public class LoginActivity extends AppCompatActivity {
     /**
      * Bindings de view's (Libreria ButterKnife)
      */
-    @Bind(R.id.txtLogin)
+    @BindView(R.id.txtLogin)
     TextView tituloLogin;
-    @Bind(R.id.textUser)
+    @BindView(R.id.textUser)
     EditText textUser;
-    @Bind(R.id.textPassword)
+    @BindView(R.id.textPassword)
     EditText textPassword;
-    @Bind(R.id.fabLogin)
+    @BindView(R.id.fabLogin)
     FloatingActionButton mFabLogin;
-    @Bind(R.id.coordinatorLogin)
+    @BindView(R.id.coordinatorLogin)
     CoordinatorLayout mCoodinatorLogin;
-    @Bind(R.id.imgLogo)
+    @BindView(R.id.imgLogo)
     ImageView mImgLogo;
 
 
@@ -160,6 +161,13 @@ public class LoginActivity extends AppCompatActivity {
 
         Log.e("ID-DEVICE", idDispositivo);
 
+    }
+
+    @OnClick(R.id.imgLogo)
+    void showIdDevice() {
+        String idDispositivo =
+                Settings.Secure.getString(LoginActivity.this.getContentResolver(), Settings.Secure.ANDROID_ID);
+        Snackbar.make(mCoodinatorLogin, idDispositivo, Snackbar.LENGTH_INDEFINITE).show();
     }
 
     /**

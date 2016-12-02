@@ -37,6 +37,11 @@ public class ParserXmlFlowProgress {
     private static final String ETIQUETA_CUMPLIMIENTO = "cumplimiento";
     private static final String ETIQUETA_FECHA_INICIAL = "fecha";
     private static final String ETIQUETA_FECHA_PROYECTADA = "fechaProyectada";
+    private static final String ETIQUETA_ESTADO = "estado";
+    private static final String ETIQUETA_CORRELATIVO_ACTUAL = "correlativoActual";
+    private static final String ETIQUETA_CORRELATIVO_SI = "correlativoSi";
+    private static final String ETIQUETA_CORRELATIVO_NO = "correlativoNo";
+    private static final String ETIQUETA_SECUENCIA = "secuencia";
 
 
 
@@ -102,6 +107,11 @@ public class ParserXmlFlowProgress {
         String cumplimiento = null;
         String fecha = null;
         String fechaProyectada = null;
+        String estado = null;
+        String correlativoActual = null;
+        String correlativoSi = null;
+        String correlativoNo = null;
+        String secuencia = null;
 
 
         while (mXmlPullParser.next() != XmlPullParser.END_TAG) {
@@ -169,6 +179,23 @@ public class ParserXmlFlowProgress {
                     fechaProyectada = leerFechaProyectada(mXmlPullParser);
                     Log.e("fechaProyectada", fechaProyectada );
                     break;
+                case ETIQUETA_ESTADO:
+                    estado = leerEstado(mXmlPullParser);
+                    Log.e("estado", estado );
+                    break;
+                case ETIQUETA_CORRELATIVO_ACTUAL:
+                    correlativoActual = leerCorrelativoActual(mXmlPullParser);
+                    break;
+                case ETIQUETA_CORRELATIVO_SI:
+                    correlativoSi = leerCorrelativoSi(mXmlPullParser);
+                    break;
+                case ETIQUETA_CORRELATIVO_NO:
+                    correlativoNo = leerCorrelativoNo(mXmlPullParser);
+                    break;
+                case ETIQUETA_SECUENCIA:
+                    secuencia = leerSecuencia(mXmlPullParser);
+                    Log.e("secuencia", secuencia );
+                    break;
                 default:
                     saltarEtiqueta(mXmlPullParser);
                     break;
@@ -177,7 +204,8 @@ public class ParserXmlFlowProgress {
 
         }
 
-        return new FlowProgress(correlativo,
+        return new FlowProgress(
+                correlativo,
                 idFlujo,
                 descripcion,
                 diasActuales,
@@ -190,7 +218,12 @@ public class ParserXmlFlowProgress {
                 totalPasos,
                 fecha,
                 fechaProyectada,
-                cumplimiento);
+                estado,
+                cumplimiento,
+                correlativoActual,
+                correlativoSi,
+                correlativoNo,
+                secuencia);
 
     }
 
@@ -346,6 +379,46 @@ public class ParserXmlFlowProgress {
 
         return totalDias;
 
+    }
+
+    private String leerEstado(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_ESTADO);
+        String estado = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_ESTADO);
+        return estado;
+    }
+
+    private String leerCorrelativoActual(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_CORRELATIVO_ACTUAL);
+        String correlativoActual = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_CORRELATIVO_ACTUAL);
+        return correlativoActual;
+    }
+
+    private String leerCorrelativoSi(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_CORRELATIVO_SI);
+        String correlativoSi = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_CORRELATIVO_SI);
+        return correlativoSi;
+    }
+
+    private String leerCorrelativoNo(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_CORRELATIVO_NO);
+        String correlativoNo = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_CORRELATIVO_NO);
+        return correlativoNo;
+    }
+
+    private String leerSecuencia(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_SECUENCIA);
+        String secuencia = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_SECUENCIA);
+        return secuencia;
     }
 
 

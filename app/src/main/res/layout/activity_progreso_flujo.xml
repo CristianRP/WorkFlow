@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.design.widget.CoordinatorLayout
+    android:id="@+id/coordinatorProgresoFlujo"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
@@ -18,9 +19,35 @@
 
     <include layout="@layout/content_progreso_flujo" />
 
-    <android.support.design.widget.FloatingActionButton android:id="@+id/detallePasos"
-        android:layout_width="wrap_content" android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end" android:layout_margin="@dimen/fab_margin"
-        android:src="@drawable/eye" />
+    <com.github.clans.fab.FloatingActionMenu
+        android:id="@+id/fabMenuFlujo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:menu_colorNormal="@color/colorAccent"
+        app:menu_colorPressed="@color/colorAccent"
+        app:menu_colorRipple="@color/colorAccent"
+        android:layout_gravity="bottom|end">
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fabHistorico"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_historico"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccent"
+            app:fab_colorRipple="@color/colorAccent"
+            app:fab_label="@string/fab_historico"/>
+
+        <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fabSeguimiento"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_seguimiento"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccent"
+            app:fab_colorRipple="@color/colorAccent"
+            app:fab_label="@string/fab_seguimiento"/>
+
+    </com.github.clans.fab.FloatingActionMenu>
 
 </android.support.design.widget.CoordinatorLayout>

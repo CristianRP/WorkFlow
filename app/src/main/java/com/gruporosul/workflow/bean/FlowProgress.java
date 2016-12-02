@@ -21,7 +21,12 @@ public class FlowProgress {
     private String totalPasos;
     private String fecha;
     private String fechaProyectada;
+    private String estado;
     private String cumplimiento;
+    private String correlativoActual;
+    private String correlativoSi;
+    private String correlativoNo;
+    private String secuencia;
 
     public static List<FlowProgress> FLUJO = new ArrayList<>();
 
@@ -39,8 +44,11 @@ public class FlowProgress {
 
     public FlowProgress(String correlativoFlujo, String id, String descripcion,
                         String diasActuales, String totalDias, String codFlujo,
-                        String agrupador, String tipo, String pasoActual, String cantPasosLleva,
-                        String totalPasos, String fecha, String fechaProyectada, String cumplimiento) {
+                        String agrupador, String tipo, String pasoActual,
+                        String cantPasosLleva, String totalPasos, String fecha,
+                        String fechaProyectada, String estado, String cumplimiento,
+                        String correlativoActual, String correlativoSi,
+                        String correlativoNo, String secuencia) {
         this.correlativoFlujo = correlativoFlujo;
         this.id = id;
         this.descripcion = descripcion;
@@ -54,7 +62,12 @@ public class FlowProgress {
         this.totalPasos = totalPasos;
         this.fecha = fecha;
         this.fechaProyectada = fechaProyectada;
+        this.estado = estado;
         this.cumplimiento = cumplimiento;
+        this.correlativoActual = correlativoActual;
+        this.correlativoSi = correlativoSi;
+        this.correlativoNo = correlativoNo;
+        this.secuencia = secuencia;
     }
 
     public String getCorrelativoFlujo() {
@@ -161,11 +174,51 @@ public class FlowProgress {
         this.fechaProyectada = fechaProyectada;
     }
 
+    public String getEstado() {
+        return estado;
+    }
+
+    public void setEstado(String estado) {
+        this.estado = estado;
+    }
+
     public String getCumplimiento() {
         return cumplimiento;
     }
 
     public void setCumplimiento(String cumplimiento) {
         this.cumplimiento = cumplimiento;
+    }
+
+    public String getCorrelativoActual() {
+        return correlativoActual;
+    }
+
+    public void setCorrelativoActual(String correlativoActual) {
+        this.correlativoActual = correlativoActual;
+    }
+
+    public String getCorrelativoSi() {
+        return correlativoSi;
+    }
+
+    public void setCorrelativoSi(String correlativoSi) {
+        this.correlativoSi = correlativoSi;
+    }
+
+    public String getCorrelativoNo() {
+        return correlativoNo;
+    }
+
+    public void setCorrelativoNo(String correlativoNo) {
+        this.correlativoNo = correlativoNo;
+    }
+
+    public String getSecuencia() {
+        return secuencia;
+    }
+
+    public void setSecuencia(String secuencia) {
+        this.secuencia = secuencia;
     }
 }
