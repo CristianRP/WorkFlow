@@ -36,6 +36,8 @@ public class FlujosActivity extends AppCompatActivity {
     private TableView<Flow>  tableFlujos;
     private ProgressDialog mProgressDialog;
 
+    public static FlujosActivity flujosActivity;
+
     private final static String URL =
             "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_List?";
 
@@ -43,6 +45,8 @@ public class FlujosActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_flujos);
+
+        flujosActivity = this;
 
         if (getIntent().getStringExtra("tipo") != null && getIntent().getStringExtra("estado") != null && getIntent().getStringExtra("agrupador") != null) {
             setToolbar(getIntent().getStringExtra("tipo") + "/" +

@@ -159,5 +159,6 @@
     <string name="dialog_op_cancelar">Cancelar</string>
     <string name="dialog_op_default">Tiene que seleccionar una opción</string>
     <string name="title_activity_comodin">Ingresar comodines</string>
+    <string name="title_enviar_comodin">Enviar comodin</string>
 
 </resources>

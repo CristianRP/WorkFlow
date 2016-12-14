@@ -28,6 +28,8 @@ public class PrefManager {
 
     private static final String KEY_ID_DISPOSITIVO = "idDispositivo";
 
+    private static final String HAS_PERMISSION = "hasPermission";
+
     public PrefManager(Context context) {
         this._context = context;
         preferences = context.getSharedPreferences(PREF_NAME, PRIVATE_MODE);
@@ -66,6 +68,10 @@ public class PrefManager {
 
     public boolean isLoggedIn() {
         return preferences.getBoolean(IS_LOGIN, false);
+    }
+
+    public boolean hasPermission() {
+        return preferences.getBoolean(HAS_PERMISSION, false);
     }
 
     public void logout() {

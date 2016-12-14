@@ -36,6 +36,8 @@ public class AgrupadorActivity extends AppCompatActivity
     private GrouperAdapter mAdaptador;
     private ProgressDialog mProgressDialog;
 
+    public static AgrupadorActivity agrupadorActivity;
+
     private final static String URL =
             "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_Grouper?";
 
@@ -43,6 +45,8 @@ public class AgrupadorActivity extends AppCompatActivity
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_agrupador);
+
+        agrupadorActivity = this;
 
         Intent titulo = getIntent();
         if (titulo.getStringExtra("buscar") != null) {

@@ -39,6 +39,8 @@ public class MainActivity extends AppCompatActivity
     private ProgressDialog mProgressDialog;
     private PrefManager mPrefManager;
 
+    public static MainActivity mainActivity;
+
     private final static String URL =
             "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Type_List";
 
@@ -50,6 +52,8 @@ public class MainActivity extends AppCompatActivity
         setToolbar();
 
         mPrefManager = new PrefManager(this);
+
+        mainActivity = this;
 
         mRecyclerView = (RecyclerView) findViewById(R.id.recyclerMain);
         mRecyclerView.setHasFixedSize(true);

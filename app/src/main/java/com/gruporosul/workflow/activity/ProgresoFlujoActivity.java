@@ -21,10 +21,13 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.AuthFailureError;
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.Response;
 import com.android.volley.VolleyError;
+import com.android.volley.toolbox.HttpHeaderParser;
 import com.android.volley.toolbox.StringRequest;
+import com.github.clans.fab.FloatingActionButton;
 import com.gruporosul.workflow.R;
 import com.gruporosul.workflow.bean.Comodin;
 import com.gruporosul.workflow.bean.FlowProgress;
@@ -40,6 +43,7 @@ import org.xmlpull.v1.XmlPullParserException;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.HashMap;
@@ -66,9 +70,14 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
     String strDefault;
     @BindView(R.id.coordinatorProgresoFlujo)
     CoordinatorLayout mCoordinatorProgresoFlujo;
+    @BindView(R.id.stackedbarchart)
+    StackedBarChart mStackedBarChart;
+    @BindView(R.id.fabSeguimiento)
+    FloatingActionButton fabSeguimiento;
 
     private ProgressDialog mProgressDialog;
     private PrefManager mPrefManager;
+    public static ProgresoFlujoActivity progresoFlujoActivity;
 
     private final static String URL =
             "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_Detail_List?";
@@ -80,12 +89,16 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
     private static final String insert_ctrl_flujo = "http://200.30.160.117:8070/ServicioClientes.asmx/wf_insert_ctr_flujo";
 
+
+    private static final String url_get_permission = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_has_permission";
+
     private String correaltivoFlujo;
     private String correlativoActual;
     private String correaltivoSiguiente;
     private String afecta;
     private String secuencia;
     private String tipoFlujo;
+    boolean permiso;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -96,6 +109,11 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
         mPrefManager = new PrefManager(this);
+        progresoFlujoActivity = this;
+
+        if (getIntent().getStringExtra("estado").toLowerCase().equals("finalizado")) {
+            fabSeguimiento.setVisibility(View.GONE);
+        }
 
         if (getIntent().getStringExtra("descripcion") != null && getIntent().getStringExtra("id") != null && getIntent().getStringExtra("agrupador") != null) {
             setToolbar(getIntent().getStringExtra("id") + "/" +
@@ -105,14 +123,20 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
             setToolbar("N/A");
         }
 
-        new TareaDescargaXml().execute(URL + "codFlujo=" + getIntent().getStringExtra("codFlujo") +
-                "&agrupador=" + getIntent().getStringExtra("agrupador").replace(" ", "%20") +
-                "&correlativo=" + getIntent().getStringExtra("correlativo") + "&estado=" + getIntent().getStringExtra("estado"));
+        loadData();
+        getPermission("77", "GSAGASTUME");
 
+    }
+
+    private void loadData() {
         mProgressDialog = new ProgressDialog(ProgresoFlujoActivity.this);
 
         mProgressDialog.setMessage("Cargando...");
         mProgressDialog.show();
+
+        new TareaDescargaXml().execute(URL + "codFlujo=" + getIntent().getStringExtra("codFlujo") +
+                "&agrupador=" + getIntent().getStringExtra("agrupador").replace(" ", "%20") +
+                "&correlativo=" + getIntent().getStringExtra("correlativo") + "&estado=" + getIntent().getStringExtra("estado"));
 
     }
 
@@ -128,7 +152,11 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
     @OnClick(R.id.fabSeguimiento)
     void showNextStep() {
-        showNextStepDialog();
+        if (permiso) {
+            showNextStepDialog();
+        } else {
+            Snackbar.make(mCoordinatorProgresoFlujo, "No tienes permisos para avanzar el paso", Snackbar.LENGTH_LONG).show();
+        }
     }
 
     private void showNextStepDialog() {
@@ -157,10 +185,23 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                                 Log.e("CORRELATIVO_SIGUIENTE", correaltivoSiguiente);
                                 secuencia = flow.getSecuencia();
                                 tipoFlujo = flow.getTipo();
-                                Toast.makeText(ProgresoFlujoActivity.this, ":v op 1" + text, Toast.LENGTH_SHORT).show();
                                 break;
                             case 1:
-                                Toast.makeText(ProgresoFlujoActivity.this, ":v op 2", Toast.LENGTH_SHORT).show();
+                                FlowProgress flujo = FlowProgress.getItem(getIntent().getStringExtra("correlativo"));
+                                new GetComodines().execute(String.format(get_comodines, flujo.getCorrelativoActual(),
+                                        text));
+                                correaltivoFlujo = flujo.getCorrelativoFlujo();
+                                correlativoActual = flujo.getCorrelativoActual();
+
+                                afecta = text.toString();
+                                if (afecta.toLowerCase().equals("si")) {
+                                    correaltivoSiguiente = flujo.getCorrelativoSi();
+                                } else {
+                                    correaltivoSiguiente = flujo.getCorrelativoNo();
+                                }
+                                Log.e("CORRELATIVO_SIGUIENTE", correaltivoSiguiente);
+                                secuencia = flujo.getSecuencia();
+                                tipoFlujo = flujo.getTipo();
                                 break;
                             default:
                                 Snackbar.make(mCoordinatorProgresoFlujo, strDefault, Snackbar.LENGTH_LONG).show();
@@ -255,8 +296,6 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
         FlowProgress flow = FlowProgress.getItem(correlativo);
 
-
-        StackedBarChart mStackedBarChart = (StackedBarChart) findViewById(R.id.stackedbarchart);
         TextView txtCorrelativo = (TextView) findViewById(R.id.txtCorrelativo);
         TextView txtId = (TextView) findViewById(R.id.txtIdentificador);
         TextView txtDescripcion = (TextView) findViewById(R.id.txtDescripcion);
@@ -291,7 +330,6 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         txtCumplimiento.setTextColor(getColor(getApplicationContext(), R.color.header_color));
         pasosActuales.setText(Html.fromHtml(getString(R.string.pasos_actuales, flow.getCantPasosLleva())));
         pasosActuales.setTextColor(getColor(getApplicationContext(), R.color.header_color));
-
 
         StackedBarModel s1 = new StackedBarModel(flow.getTotalPasos());
 
@@ -367,16 +405,23 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
             mProgressDialog.dismiss();
             
             if (Comodin.LISTA_COMODINES.size() <= 0) {
-                Toast.makeText(ProgresoFlujoActivity.this, "No tiene comodines, se procedera a avanzar el paso", Toast.LENGTH_SHORT).show();
+                Snackbar.make(mCoordinatorProgresoFlujo,
+                        "No tiene comodines, se procedera a avanzar el paso",
+                        Snackbar.LENGTH_LONG).show();
                 mProgressDialog = new ProgressDialog(ProgresoFlujoActivity.this);
                 mProgressDialog.setMessage("Cargando...");
-                //mProgressDialog.show();
+                mProgressDialog.show();
+                Log.e("Correla, Actual", correaltivoFlujo + " " + correlativoActual);
                 updateStatusControlFlujo(correaltivoFlujo, correlativoActual, "P");
             } else {
                 Intent comodines = new Intent(ProgresoFlujoActivity.this, ComodinActivity.class);
                 try {
+                    comodines.putExtra("correlativoFlujo", correaltivoFlujo);
+                    comodines.putExtra("secuencia", secuencia);
                     comodines.putExtra("correlativo", correlativoActual);
                     comodines.putExtra("afecta", afecta);
+                    comodines.putExtra("correlativoSiguiente", correaltivoSiguiente);
+                    comodines.putExtra("tipo", tipoFlujo);
                     startActivity(comodines);
                 } catch (NullPointerException npe) {
                     Toast.makeText(ProgresoFlujoActivity.this, "No se pudo encontrar el correlativo actual", Toast.LENGTH_SHORT).show();
@@ -432,16 +477,16 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         Log.e("actaulizado", "actualizdado con exito");
+                        Log.e("insert_flujo", correlativoFlujo + correaltivoSiguiente + secuencia + tipoFlujo.substring(1,32));
                         insertControlFlujo(correaltivoFlujo, correaltivoSiguiente, "A",
-                                mPrefManager.getKeyUser(), secuencia, tipoFlujo);
+                                mPrefManager.getKeyUser(), secuencia, tipoFlujo.substring(1,32));
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        Log.e("insert_control", "fail con exito" + error.getMessage());
-
+                        Log.e("update", correlativoFlujo + " " +  correlativo + " " + estado);
                     }
                 }
         ) {
@@ -453,7 +498,26 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 params.put("estado", estado);
                 return params;
             }
+            @Override
+            protected VolleyError parseNetworkError(VolleyError volleyError) {
+                String json;
+                if (volleyError.networkResponse != null && volleyError.networkResponse.data != null) {
+                    try {
+                        json = new String(volleyError.networkResponse.data,
+                                HttpHeaderParser.parseCharset(volleyError.networkResponse.headers));
+                    } catch (UnsupportedEncodingException e) {
+                        return new VolleyError(e.getMessage());
+                    }
+                    return new VolleyError(json);
+                }
+                return volleyError;
+            }
         };
+        updateStatus.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
         AppController.getInstance().addToRequestQueue(updateStatus);
     }
 
@@ -466,14 +530,22 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 new Response.Listener<String>() {
                     @Override
                     public void onResponse(String response) {
-                        Log.e("insert_control", "Ingresado con exito");
+                        Log.e("insert_control", "success" + response);
+                        mProgressDialog.dismiss();
+                        Toast.makeText(ProgresoFlujoActivity.this, "Datos ingresados con éxito!", Toast.LENGTH_SHORT).show();
+                        MainActivity.mainActivity.finish();
+                        AgrupadorActivity.agrupadorActivity.finish();
+                        FlujosActivity.flujosActivity.finish();
+                        ProgresoFlujoActivity.progresoFlujoActivity.finish();
+                        startActivity(new Intent(ProgresoFlujoActivity.this, MainActivity.class));
+                        finish();
                     }
                 },
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
                         error.printStackTrace();
-                        Log.e("insert_control", "fail " + error.getMessage().toLowerCase().toString());
+                        Log.e("insert_control", "fail");
                     }
                 }
         ) {
@@ -489,8 +561,47 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 return params;
             }
         };
-
+        insertControl.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
         AppController.getInstance().addToRequestQueue(insertControl);
+    }
+
+    private void getPermission(final String codFlujo, final String usuario) {
+
+        StringRequest getPermission = new StringRequest(
+                Request.Method.POST,
+                url_get_permission,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("response",
+                                1 + 3 + "=" + 5  + 1 +
+                                response + response.contains(">0<") + response.contains(">1<"));
+                        if (response.contains(">0<")) {
+                            permiso = false;
+                        } else if (response.contains(">1<")) {
+                            permiso = true;
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("codFlujo", codFlujo);
+                params.put("usuario", usuario);
+                return params;
+            }
+        };
+        AppController.getInstance().addToRequestQueue(getPermission);
     }
 
 }
