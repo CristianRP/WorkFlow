@@ -42,7 +42,8 @@ public class ParserXmlFlowProgress {
     private static final String ETIQUETA_CORRELATIVO_SI = "correlativoSi";
     private static final String ETIQUETA_CORRELATIVO_NO = "correlativoNo";
     private static final String ETIQUETA_SECUENCIA = "secuencia";
-
+    private static final String ETIQUETA_ROLE = "role";
+    private static final String ETIQUETA_CORRELATIVO_FIN = "correlativoFin";
 
 
     public List<FlowProgress> parsear(InputStream mInputStream)
@@ -112,7 +113,8 @@ public class ParserXmlFlowProgress {
         String correlativoSi = null;
         String correlativoNo = null;
         String secuencia = null;
-
+        String role = null;
+        String correlativoFin = null;
 
         while (mXmlPullParser.next() != XmlPullParser.END_TAG) {
 
@@ -196,6 +198,12 @@ public class ParserXmlFlowProgress {
                     secuencia = leerSecuencia(mXmlPullParser);
                     Log.e("secuencia", secuencia );
                     break;
+                case ETIQUETA_ROLE:
+                    role = leerRole(mXmlPullParser);
+                    break;
+                case ETIQUETA_CORRELATIVO_FIN:
+                    correlativoFin = leerCorrelativoFin(mXmlPullParser);
+                    break;
                 default:
                     saltarEtiqueta(mXmlPullParser);
                     break;
@@ -223,7 +231,9 @@ public class ParserXmlFlowProgress {
                 correlativoActual,
                 correlativoSi,
                 correlativoNo,
-                secuencia);
+                secuencia,
+                role,
+                correlativoFin);
 
     }
 
@@ -421,6 +431,21 @@ public class ParserXmlFlowProgress {
         return secuencia;
     }
 
+    private String leerRole(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_ROLE);
+        String role = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_ROLE);
+        return role;
+    }
+
+    private String leerCorrelativoFin(XmlPullParser xmlPullParser)
+        throws XmlPullParserException, IOException {
+        xmlPullParser.require(XmlPullParser.START_TAG, ns, ETIQUETA_CORRELATIVO_FIN);
+        String fin = obtenerTexto(xmlPullParser);
+        xmlPullParser.require(XmlPullParser.END_TAG, ns, ETIQUETA_CORRELATIVO_FIN);
+        return fin;
+    }
 
     private String obtenerTexto(XmlPullParser mXmlPullParser)
             throws XmlPullParserException, IOException {

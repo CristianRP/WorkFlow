@@ -14,4 +14,17 @@
     android:orientation="vertical"
     tools:showIn="@layout/activity_comodin">
 
+    <TextView
+        android:id="@+id/titlePasoActual"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.AppCompat.Headline" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/line_background"
+        android:paddingTop="5dp"
+        android:paddingBottom="10dp"/>
+
 </LinearLayout>

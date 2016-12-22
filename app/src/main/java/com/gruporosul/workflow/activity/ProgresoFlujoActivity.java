@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.CoordinatorLayout;
 import android.support.design.widget.Snackbar;
 import android.support.v4.content.ContextCompat;
@@ -19,6 +20,7 @@ import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.android.volley.AuthFailureError;
 import com.android.volley.DefaultRetryPolicy;
@@ -92,6 +94,8 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
     private static final String url_get_permission = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_has_permission";
 
+    private static final String get_pude_fin_forzado = "http://200.30.160.117:8070/Servicioclientes.asmx/ws_wf_fin_forzado";
+
     private String correaltivoFlujo;
     private String correlativoActual;
     private String correaltivoSiguiente;
@@ -99,6 +103,9 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
     private String secuencia;
     private String tipoFlujo;
     boolean permiso;
+    private String correlativoFin;
+    private String strPasoActual;
+    boolean can;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -153,15 +160,35 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
     @OnClick(R.id.fabSeguimiento)
     void showNextStep() {
         if (permiso) {
-            showNextStepDialog();
+            showNextStepDialog(strPasoActual);
         } else {
             Snackbar.make(mCoordinatorProgresoFlujo, "No tienes permisos para avanzar el paso", Snackbar.LENGTH_LONG).show();
         }
     }
 
-    private void showNextStepDialog() {
+    @OnClick(R.id.fabFinForzado)
+    void setFinForzado() {
+        showDialogFinForzado();
+    }
+
+    private void showDialogFinForzado() {
+        new MaterialDialog.Builder(this)
+                .title(R.string.dialog_op_fin_forzado)
+                .content(R.string.content_dialog_fin_forzado)
+                .positiveText(R.string.dialog_op_fin_forzado)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        getFinForzado(correlativoFin, "GSAGASTUME");
+                    }
+                })
+                .show();
+    }
+
+    private void showNextStepDialog(String pasoActual) {
         new MaterialDialog.Builder(this)
                 .title(titleDialog)
+                .content(pasoActual)
                 .items(itemsDialog)
                 .positiveText(strAceptar)
                 .negativeText(strCancelar)
@@ -250,7 +277,7 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
             FlowProgress.FLUJO = items;
 
             setData(getIntent().getStringExtra("correlativo"));
-            mProgressDialog.dismiss();
+
 
         }
 
@@ -339,6 +366,8 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
         Log.e("cantlleva", "" + Float.parseFloat(flow.getCantPasosLleva()));
         Log.e("total", Float.valueOf(flow.getTotalPasos())+"");
+        strPasoActual = flow.getPasoActual();
+        correlativoFin = flow.getCorrelativoFin();
 
         mStackedBarChart.addBar(s1);
 
@@ -422,6 +451,7 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                     comodines.putExtra("afecta", afecta);
                     comodines.putExtra("correlativoSiguiente", correaltivoSiguiente);
                     comodines.putExtra("tipo", tipoFlujo);
+                    comodines.putExtra("pasoActual", strPasoActual);
                     startActivity(comodines);
                 } catch (NullPointerException npe) {
                     Toast.makeText(ProgresoFlujoActivity.this, "No se pudo encontrar el correlativo actual", Toast.LENGTH_SHORT).show();
@@ -477,9 +507,14 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                     @Override
                     public void onResponse(String response) {
                         Log.e("actaulizado", "actualizdado con exito");
-                        Log.e("insert_flujo", correlativoFlujo + correaltivoSiguiente + secuencia + tipoFlujo.substring(1,32));
-                        insertControlFlujo(correaltivoFlujo, correaltivoSiguiente, "A",
-                                mPrefManager.getKeyUser(), secuencia, tipoFlujo.substring(1,32));
+                        Log.e("insert_flujo", correlativoFlujo + correaltivoSiguiente + secuencia + tipoFlujo);
+                        if (tipoFlujo.length() <= 32) {
+                            insertControlFlujo(correaltivoFlujo, correaltivoSiguiente, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipoFlujo);
+                        } else {
+                            insertControlFlujo(correaltivoFlujo, correaltivoSiguiente, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipoFlujo.substring(1,32));
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -585,6 +620,7 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                         } else if (response.contains(">1<")) {
                             permiso = true;
                         }
+                        mProgressDialog.dismiss();
                     }
                 },
                 new Response.ErrorListener() {
@@ -602,6 +638,56 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
             }
         };
         AppController.getInstance().addToRequestQueue(getPermission);
+    }
+
+    private void getFinForzado(final String correlativoFin, final String usuario) {
+
+        StringRequest getPermission = new StringRequest(
+                Request.Method.POST,
+                get_pude_fin_forzado,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("response",
+                                1 + 3 + "=" + 5  + 1 +
+                                        response + response.contains(">0<") + response.contains(">1<"));
+                        if (response.contains(">0<")) {
+                            can = false;
+                            Toast.makeText(ProgresoFlujoActivity.this, "No tienes permisos para dar fin forzado", Toast.LENGTH_SHORT).show();
+                        } else if (response.contains(">1<")) {
+                            Toast.makeText(ProgresoFlujoActivity.this, "Fin forzado alv", Toast.LENGTH_SHORT).show();
+                            showFinForzadoDialog();
+                        }
+                        mProgressDialog.dismiss();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                HashMap<String, String> params = new HashMap<>();
+                params.put("correlativoFin", correlativoFin);
+                params.put("usuario", usuario);
+                return params;
+            }
+        };
+        AppController.getInstance().addToRequestQueue(getPermission);
+    }
+
+    private void showFinForzadoDialog() {
+        new MaterialDialog.Builder(this)
+                .title(R.string.input_dialog_fin)
+                .content(R.string.input_hint_dialog_fin)
+                .input(R.string.input_hint_dialog_fin, 0, false, new MaterialDialog.InputCallback() {
+                    @Override
+                    public void onInput(MaterialDialog dialog, CharSequence input) {
+                        Toast.makeText(ProgresoFlujoActivity.this, ":v " + input.toString(), Toast.LENGTH_SHORT).show();
+                    }
+                }).show();
     }
 
 }

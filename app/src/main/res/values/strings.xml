@@ -151,6 +151,7 @@
     <string name="dialog_next_step">Avance de work flow</string>
     <string name="dialog_op_si">Si</string>
     <string name="dialog_op_no">No</string>
+    <string name="dialog_op_fin_forzado">Fin forzado</string>
     <array name="items_dialog_next_step">
         <item>@string/dialog_op_si</item>
         <item>@string/dialog_op_no</item>
@@ -160,5 +161,8 @@
     <string name="dialog_op_default">Tiene que seleccionar una opción</string>
     <string name="title_activity_comodin">Ingresar comodines</string>
     <string name="title_enviar_comodin">Enviar comodin</string>
+    <string name="content_dialog_fin_forzado">¿Esta seguro de finalizar el flujo?</string>
+    <string name="input_dialog_fin">Finalizar Flujo</string>
+    <string name="input_hint_dialog_fin">Motivo del fin forzado</string>
 
 </resources>

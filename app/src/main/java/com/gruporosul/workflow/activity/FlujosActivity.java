@@ -66,7 +66,7 @@ public class FlujosActivity extends AppCompatActivity {
         tableFlujos.setHeaderBackgroundColor(getColor(getApplicationContext(), R.color.header_color));
         int colorEvenRows = getColor(getApplicationContext(), R.color.windowBackground);
         int colorOddRows = getColor(getApplicationContext(), R.color.row_color);
-        tableFlujos.setDataRowColoriser(TableDataRowColorizers.alternatingRows(colorEvenRows, colorOddRows));
+        tableFlujos.setDataRowColorizer(TableDataRowColorizers.alternatingRows(colorEvenRows, colorOddRows));
         tableFlujos.addDataClickListener(new FlowClickListener());
         tableFlujos.setColumnWeight(0, 2);
         tableFlujos.setColumnWeight(1, 3);

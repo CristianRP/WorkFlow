@@ -27,6 +27,8 @@ public class FlowProgress {
     private String correlativoSi;
     private String correlativoNo;
     private String secuencia;
+    private String role;
+    private String correlativoFin;
 
     public static List<FlowProgress> FLUJO = new ArrayList<>();
 
@@ -48,7 +50,8 @@ public class FlowProgress {
                         String cantPasosLleva, String totalPasos, String fecha,
                         String fechaProyectada, String estado, String cumplimiento,
                         String correlativoActual, String correlativoSi,
-                        String correlativoNo, String secuencia) {
+                        String correlativoNo, String secuencia, String role,
+                        String correlativoFin) {
         this.correlativoFlujo = correlativoFlujo;
         this.id = id;
         this.descripcion = descripcion;
@@ -68,6 +71,8 @@ public class FlowProgress {
         this.correlativoSi = correlativoSi;
         this.correlativoNo = correlativoNo;
         this.secuencia = secuencia;
+        this.role = role;
+        this.correlativoFin = correlativoFin;
     }
 
     public String getCorrelativoFlujo() {
@@ -220,5 +225,21 @@ public class FlowProgress {
 
     public void setSecuencia(String secuencia) {
         this.secuencia = secuencia;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
+    }
+
+    public String getCorrelativoFin() {
+        return correlativoFin;
+    }
+
+    public void setCorrelativoFin(String correlativoFin) {
+        this.correlativoFin = correlativoFin;
     }
 }

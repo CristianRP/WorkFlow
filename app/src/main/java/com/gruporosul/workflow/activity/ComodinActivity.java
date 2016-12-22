@@ -10,10 +10,13 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.InputType;
+import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -29,9 +32,12 @@ import com.gruporosul.workflow.R;
 import com.gruporosul.workflow.bean.Comodin;
 import com.gruporosul.workflow.preferences.PrefManager;
 import com.gruporosul.workflow.volley.AppController;
+import com.philliphsu.bottomsheetpickers.date.BottomSheetDatePickerDialog;
+import com.philliphsu.bottomsheetpickers.date.DatePickerDialog;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -40,12 +46,15 @@ import butterknife.BindString;
 import butterknife.BindView;
 import butterknife.ButterKnife;
 
-public class ComodinActivity extends AppCompatActivity {
+public class ComodinActivity extends AppCompatActivity
+        implements DatePickerDialog.OnDateSetListener {
 
     @BindString(R.string.title_activity_comodin)
     String titleActivity;
     @BindView(R.id.content_comodin)
     LinearLayout mContentComodin;
+    @BindView(R.id.titlePasoActual)
+    TextView titlePasoActual;
 
     private ProgressDialog mProgressDialog;
     private PrefManager mPrefManager;
@@ -63,6 +72,7 @@ public class ComodinActivity extends AppCompatActivity {
     private String secuencia;
     private String usuario;
     private String tipo;
+    private String fecha;
     List<TextInputLayout> allInputEditText = new ArrayList<>();
 
     @Override
@@ -76,10 +86,15 @@ public class ComodinActivity extends AppCompatActivity {
 
         mPrefManager = new PrefManager(this);
 
+        titlePasoActual.setText(getIntent().getStringExtra("pasoActual"));
+
         for (int i = 0; i < Comodin.LISTA_COMODINES.size(); i++) {
             TextInputLayout txtInput = createTextInputLayouts(Comodin.LISTA_COMODINES.get(i).getComodin(),
                     Comodin.LISTA_COMODINES.get(i).getTipo());
             Log.e("tipos", Comodin.LISTA_COMODINES.get(i).getTipo());
+            /*if (Comodin.LISTA_COMODINES.get(i).getTipo().toLowerCase().equals("date")) {
+                createBottomSheet();
+            }*/
             allInputEditText.add(txtInput);
             mContentComodin.addView(txtInput);
         }
@@ -155,11 +170,32 @@ public class ComodinActivity extends AppCompatActivity {
                 break;
             case "date":
                 textInputEditText.setInputType(InputType.TYPE_CLASS_DATETIME);
+                textInputEditText.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+                        createBottomSheet();
+                    }
+                });
                 break;
             default:
                 break;
         }
         return textInputEditText;
+    }
+
+    private BottomSheetDatePickerDialog createBottomSheet() {
+        Calendar now = Calendar.getInstance();
+        BottomSheetDatePickerDialog dialog = BottomSheetDatePickerDialog.newInstance(
+                ComodinActivity.this,
+                now.get(Calendar.YEAR),
+                now.get(Calendar.MONTH),
+                now.get(Calendar.DAY_OF_MONTH));
+        Calendar max = Calendar.getInstance();
+        max.add(Calendar.YEAR, 10);
+        dialog.setMaxDate(max);
+        dialog.setYearRange(1970, 2032);
+        dialog.show(getSupportFragmentManager(), ComodinActivity.class.getSimpleName());
+        return dialog;
     }
 
     private void showDialogInsertComodin(final String correlativoFlujo, final String correlativoComodin,
@@ -176,9 +212,10 @@ public class ComodinActivity extends AppCompatActivity {
                         mProgressDialog = new ProgressDialog(ComodinActivity.this);
                         mProgressDialog.setMessage("Enviando datos...");
                         mProgressDialog.setCancelable(false);
-                        mProgressDialog.show();
-                        insertComodin(correlativoFlujo, correlativoComodin, secuencia, comodin,
-                                valor, afecta, usuario);
+                        //mProgressDialog.show();
+                        Toast.makeText(ComodinActivity.this, fecha, Toast.LENGTH_SHORT).show();
+                        /*insertComodin(correlativoFlujo, correlativoComodin, secuencia, comodin,
+                                valor, afecta, usuario);*/
                         Log.e("values", correlativoFlujo+ correlativoComodin+ secuencia+ comodin+
                                 valor+ afecta+ usuario);
                     }
@@ -251,9 +288,16 @@ public class ComodinActivity extends AppCompatActivity {
                     public void onResponse(String response) {
                         Log.e("actaulizado", "actualizdado con exito");
                         mProgressDialog.setCancelable(true);
-                        Log.e("insert_flujo", correlativoFlujo + correlativoSiguiente + secuencia + tipo.substring(1,32));
+                        Log.e("insert_flujo", correlativoFlujo + correlativoSiguiente + secuencia + tipo);
                         insertControlFlujo(correlativoFlujo, correlativoSiguiente, "A",
                                 mPrefManager.getKeyUser(), secuencia, tipo.substring(1,32));
+                        if (tipo.length() <= 32) {
+                            insertControlFlujo(correlativoFlujo, correlativoSiguiente, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipo);
+                        } else {
+                            insertControlFlujo(correlativoFlujo, correlativoSiguiente, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipo.substring(1,32));
+                        }
                     }
                 },
                 new Response.ErrorListener() {
@@ -343,4 +387,25 @@ public class ComodinActivity extends AppCompatActivity {
         AppController.getInstance().addToRequestQueue(insertControl);
     }
 
+    /**
+     * @param dialog
+     * @param year        The year that was set.
+     * @param monthOfYear The month that was set (0-11) for compatibility
+     *                    with {@link Calendar}.
+     * @param dayOfMonth  The day of the month that was set.
+     */
+    @Override
+    public void onDateSet(DatePickerDialog dialog, int year, int monthOfYear, int dayOfMonth) {
+        Calendar cal = new java.util.GregorianCalendar();
+        cal.set(Calendar.YEAR, year);
+        cal.set(Calendar.MONTH, monthOfYear);
+        cal.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+        fecha = DateFormat.getDateFormat(this).format(cal.getTime());
+        for (TextInputLayout tx : allInputEditText) {
+            if (tx.getEditText().getInputType() == InputType.TYPE_CLASS_DATETIME) {
+                tx.getEditText().setText(fecha);
+            }
+        }
+        Toast.makeText(this, fecha, Toast.LENGTH_SHORT).show();
+    }
 }

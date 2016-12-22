@@ -39,6 +39,16 @@
             app:fab_label="@string/fab_historico"/>
 
         <com.github.clans.fab.FloatingActionButton
+            android:id="@+id/fabFinForzado"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/ic_fin_forzado"
+            app:fab_colorNormal="@color/colorAccent"
+            app:fab_colorPressed="@color/colorAccent"
+            app:fab_colorRipple="@color/colorAccent"
+            app:fab_label="@string/dialog_op_fin_forzado"/>
+
+        <com.github.clans.fab.FloatingActionButton
             android:id="@+id/fabSeguimiento"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
