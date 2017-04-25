@@ -44,7 +44,7 @@ public class LoginActivity extends AppCompatActivity {
 
     private static final String TAG = LoginActivity.class.getSimpleName();
     private ProgressDialog mProgressDialog;
-    private static final String url_login = "http://200.30.160.117:8070/Servicioclientes.asmx/LoginUsuario";
+    private static final String url_login = "http://168.234.51.176:8070/Servicioclientes.asmx/LoginUsuario";
     private static final String  tag_string_req = "login_req";
     private PrefManager mPrefManager;
 

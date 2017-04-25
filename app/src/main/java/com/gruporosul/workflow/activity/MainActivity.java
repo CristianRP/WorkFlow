@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity
     public static MainActivity mainActivity;
 
     private final static String URL =
-            "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Type_List";
+            "http://168.234.51.176:8070/Servicioclientes.asmx/WF_Type_List";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,7 +95,7 @@ public class MainActivity extends AppCompatActivity
         final ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             // Establecer icono del drawer toggle
-            actionBar.setHomeAsUpIndicator(R.drawable.ic_flujo_de_trabajo);
+            actionBar.setHomeAsUpIndicator(R.drawable.ic_flujo_de_trabajo_icon);
             actionBar.setDisplayHomeAsUpEnabled(true);
         }
     }

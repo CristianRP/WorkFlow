@@ -39,7 +39,7 @@ public class FlujosActivity extends AppCompatActivity {
     public static FlujosActivity flujosActivity;
 
     private final static String URL =
-            "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_List?";
+            "http://168.234.51.176:8070/Servicioclientes.asmx/WF_Flow_List?";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

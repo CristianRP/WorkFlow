@@ -32,10 +32,12 @@ import com.android.volley.toolbox.StringRequest;
 import com.github.clans.fab.FloatingActionButton;
 import com.gruporosul.workflow.R;
 import com.gruporosul.workflow.bean.Comodin;
+import com.gruporosul.workflow.bean.CorrelativoSiNo;
 import com.gruporosul.workflow.bean.FlowProgress;
 import com.gruporosul.workflow.preferences.PrefManager;
 import com.gruporosul.workflow.volley.AppController;
 import com.gruporosul.workflow.xml.ParserXmlComodin;
+import com.gruporosul.workflow.xml.ParserXmlCorrelativoSiNo;
 import com.gruporosul.workflow.xml.ParserXmlFlowProgress;
 
 import org.eazegraph.lib.charts.StackedBarChart;
@@ -58,12 +60,18 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+import static android.view.View.GONE;
+
 public class  ProgresoFlujoActivity extends AppCompatActivity {
 
     @BindString(R.string.dialog_next_step)
     String titleDialog;
     @BindArray(R.array.items_dialog_next_step)
     String[] itemsDialog;
+    @BindArray(R.array.items_dialog_next_step_si)
+    String[] itemsDialogSi;
+    @BindArray(R.array.items_dialog_next_step_no)
+    String[] itemsDialogNo;
     @BindString(R.string.dialog_op_aceptar)
     String strAceptar;
     @BindString(R.string.dialog_op_cancelar)
@@ -76,25 +84,35 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
     StackedBarChart mStackedBarChart;
     @BindView(R.id.fabSeguimiento)
     FloatingActionButton fabSeguimiento;
+    @BindView(R.id.fabFinForzado)
+    FloatingActionButton fabFinForzado;
 
     private ProgressDialog mProgressDialog;
     private PrefManager mPrefManager;
     public static ProgresoFlujoActivity progresoFlujoActivity;
 
+    private static final String url_hostname = "http://168.234.51.176:8070/Servicioclientes.asmx/";
+
     private final static String URL =
-            "http://200.30.160.117:8070/Servicioclientes.asmx/WF_Flow_Detail_List?";
+            url_hostname + "WF_Flow_Detail_List?";
 
     private static final String get_comodines =
-            "http://200.30.160.117:8070/Servicioclientes.asmx/wf_get_prototipo_comodin?correlativo=%s&afecta=%s";
+            url_hostname + "wf_get_prototipo_comodin?correlativo=%s&afecta=%s";
 
-    private static final String update_ctrl_flujo = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_update_ctrl_flujo";
+    private static final String update_ctrl_flujo = url_hostname + "wf_update_ctrl_flujo";
 
-    private static final String insert_ctrl_flujo = "http://200.30.160.117:8070/ServicioClientes.asmx/wf_insert_ctr_flujo";
+    private static final String insert_ctrl_flujo = url_hostname + "wf_insert_ctr_flujo";
 
 
-    private static final String url_get_permission = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_has_permission";
+    private static final String url_get_permission = url_hostname + "wf_has_permission";
 
-    private static final String get_pude_fin_forzado = "http://200.30.160.117:8070/Servicioclientes.asmx/ws_wf_fin_forzado";
+    private static final String get_pude_fin_forzado = url_hostname + "ws_wf_fin_forzado";
+
+    private static final String insert_ctrl_fin_forzado = url_hostname + "ws_wf_insert_ctrl_fin_forzado";
+
+    private static final String get_comodines_si_no = url_hostname + "ws_wf_get_comodines_si_no?correlativoFlujo=%s";
+
+    private static final String get_correlativo_si_no = url_hostname + "ws_wf_get_correlativo_si_no?correlativoFlujo=%s";
 
     private String correaltivoFlujo;
     private String correlativoActual;
@@ -119,7 +137,8 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         progresoFlujoActivity = this;
 
         if (getIntent().getStringExtra("estado").toLowerCase().equals("finalizado")) {
-            fabSeguimiento.setVisibility(View.GONE);
+            fabSeguimiento.setVisibility(GONE);
+            fabFinForzado.setVisibility(GONE);
         }
 
         if (getIntent().getStringExtra("descripcion") != null && getIntent().getStringExtra("id") != null && getIntent().getStringExtra("agrupador") != null) {
@@ -144,6 +163,8 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         new TareaDescargaXml().execute(URL + "codFlujo=" + getIntent().getStringExtra("codFlujo") +
                 "&agrupador=" + getIntent().getStringExtra("agrupador").replace(" ", "%20") +
                 "&correlativo=" + getIntent().getStringExtra("correlativo") + "&estado=" + getIntent().getStringExtra("estado"));
+
+        new GetCorrelativoSiNo().execute(String.format(get_correlativo_si_no, getIntent().getStringExtra("correlativo")));
 
     }
 
@@ -186,7 +207,7 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
     }
 
     private void showNextStepDialog(String pasoActual) {
-        new MaterialDialog.Builder(this)
+        MaterialDialog.Builder builder = new MaterialDialog.Builder(this)
                 .title(titleDialog)
                 .content(pasoActual)
                 .items(itemsDialog)
@@ -236,8 +257,21 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                         }
                         return true;
                     }
-                })
-                .show();
+                });
+        MaterialDialog mDialog = builder.build();
+        if (CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoNo() > 0 &&
+                CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoSi() > 0) {
+            mDialog.show();
+        } else if (CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoNo() > 0 &&
+                CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoSi() <= 0) {
+            mDialog.setItems(itemsDialogNo);
+            mDialog.show();
+        } else if (CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoNo() <= 0 &&
+                CorrelativoSiNo.CORRELATIVO_SI_NO.get(0).getCorrelativoSi() > 0) {
+            mDialog.setItems(itemsDialogSi);
+            mDialog.show();
+        }
+
     }
 
     /**
@@ -308,8 +342,8 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
 
             java.net.URL url = new URL(urlString);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setReadTimeout(25000);
-            connection.setConnectTimeout(30000);
+            connection.setReadTimeout(250000);
+            connection.setConnectTimeout(300000);
             connection.setRequestMethod("GET");
             connection.connect();
 
@@ -368,6 +402,11 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
         Log.e("total", Float.valueOf(flow.getTotalPasos())+"");
         strPasoActual = flow.getPasoActual();
         correlativoFin = flow.getCorrelativoFin();
+        correaltivoFlujo = flow.getCorrelativoFlujo();
+        correlativoActual = flow.getCorrelativoActual();
+
+        secuencia = flow.getSecuencia();
+        tipoFlujo = flow.getTipo();
 
         mStackedBarChart.addBar(s1);
 
@@ -637,6 +676,11 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 return params;
             }
         };
+        getPermission.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
         AppController.getInstance().addToRequestQueue(getPermission);
     }
 
@@ -655,7 +699,7 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                             can = false;
                             Toast.makeText(ProgresoFlujoActivity.this, "No tienes permisos para dar fin forzado", Toast.LENGTH_SHORT).show();
                         } else if (response.contains(">1<")) {
-                            Toast.makeText(ProgresoFlujoActivity.this, "Fin forzado alv", Toast.LENGTH_SHORT).show();
+                            //Toast.makeText(ProgresoFlujoActivity.this, "Fin forzado alv", Toast.LENGTH_SHORT).show();
                             showFinForzadoDialog();
                         }
                         mProgressDialog.dismiss();
@@ -675,6 +719,11 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 return params;
             }
         };
+        getPermission.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
         AppController.getInstance().addToRequestQueue(getPermission);
     }
 
@@ -685,9 +734,181 @@ public class  ProgresoFlujoActivity extends AppCompatActivity {
                 .input(R.string.input_hint_dialog_fin, 0, false, new MaterialDialog.InputCallback() {
                     @Override
                     public void onInput(MaterialDialog dialog, CharSequence input) {
-                        Toast.makeText(ProgresoFlujoActivity.this, ":v " + input.toString(), Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ProgresoFlujoActivity.this, ":v " + input.toString(), Toast.LENGTH_SHORT).show();
+                        mProgressDialog.show();
+                        updateStatusControlFinFlujo(correaltivoFlujo, correlativoActual, "P", input.toString());
                     }
                 }).show();
+    }
+
+    private void finForzadoFlujo(final String correlativoFlujo, final String correlativoComodin,
+                                 final String estado, final String usuario, final String secuencia,
+                                 final String tipoFlujo, final String motivo) {
+
+        StringRequest fin_forzado_request = new StringRequest(
+                Request.Method.POST,
+                insert_ctrl_fin_forzado,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        mProgressDialog.dismiss();
+                        Toast.makeText(ProgresoFlujoActivity.this, "Finalizado con éxito!", Toast.LENGTH_SHORT).show();
+                        startActivity(new Intent(ProgresoFlujoActivity.this, MainActivity.class));
+                        finish();
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("correlativoFlujo", correlativoFlujo);
+                params.put("correlativoComodin", correlativoComodin);
+                params.put("estado", estado);
+                params.put("usuario", usuario);
+                params.put("secuencia", secuencia);
+                params.put("tipoFlujo", tipoFlujo);
+                params.put("motivo", motivo);
+                return params;
+            }
+        };
+
+        fin_forzado_request.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
+
+        AppController.getInstance().addToRequestQueue(fin_forzado_request);
+
+    }
+
+    public void updateStatusControlFinFlujo(final String correlativoFlujo, final String correlativo, final String estado, final String input) {
+        StringRequest updateStatus = new StringRequest(
+                Request.Method.POST,
+                update_ctrl_flujo,
+                new Response.Listener<String>() {
+                    @Override
+                    public void onResponse(String response) {
+                        Log.e("actaulizado", "actualizdado con exito");
+                        Log.e("insert_flujo", correlativoFlujo + correaltivoSiguiente + secuencia + tipoFlujo);
+                        if (tipoFlujo.length() <= 32) {
+                            finForzadoFlujo(correaltivoFlujo, correlativoFin, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipoFlujo, input);
+                        } else {
+                            finForzadoFlujo(correaltivoFlujo, correlativoFin, "A",
+                                    mPrefManager.getKeyUser(), secuencia, tipoFlujo.substring(1,32), input);
+                        }
+                    }
+                },
+                new Response.ErrorListener() {
+                    @Override
+                    public void onErrorResponse(VolleyError error) {
+                        error.printStackTrace();
+                        Log.e("update", correlativoFlujo + " " +  correlativo + " " + estado);
+                    }
+                }
+        ) {
+            @Override
+            protected Map<String, String> getParams() throws AuthFailureError {
+                Map<String, String> params = new HashMap<>();
+                params.put("correlativoFlujo", correlativoFlujo);
+                params.put("correlativo", correlativo);
+                params.put("estado", estado);
+                return params;
+            }
+            @Override
+            protected VolleyError parseNetworkError(VolleyError volleyError) {
+                String json;
+                if (volleyError.networkResponse != null && volleyError.networkResponse.data != null) {
+                    try {
+                        json = new String(volleyError.networkResponse.data,
+                                HttpHeaderParser.parseCharset(volleyError.networkResponse.headers));
+                    } catch (UnsupportedEncodingException e) {
+                        return new VolleyError(e.getMessage());
+                    }
+                    return new VolleyError(json);
+                }
+                return volleyError;
+            }
+        };
+        updateStatus.setRetryPolicy(new DefaultRetryPolicy(
+                100000,
+                DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
+                DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
+        ));
+        AppController.getInstance().addToRequestQueue(updateStatus);
+    }
+
+    /**
+     * Obtener si tiene comodines para el "si" y comodines para "no"
+     */
+    private class GetCorrelativoSiNo extends AsyncTask<String, Void, List<CorrelativoSiNo>> {
+
+        @Override
+        protected List<CorrelativoSiNo> doInBackground(String... urls) {
+            try {
+                Log.e("hao", urls[0]);
+                return parsearXmlDeUrl(urls[0]);
+            } catch (IOException e) {
+                e.printStackTrace();
+                return null;
+            } catch (XmlPullParserException e) {
+                e.printStackTrace();
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(List<CorrelativoSiNo> items) {
+
+            CorrelativoSiNo.CORRELATIVO_SI_NO = items;
+
+            mProgressDialog.dismiss();
+
+        }
+
+        private List<CorrelativoSiNo> parsearXmlDeUrl(String urlString)
+                throws XmlPullParserException, IOException {
+
+            InputStream mInputStream = null;
+            ParserXmlCorrelativoSiNo mParserXmlComodin = new ParserXmlCorrelativoSiNo();
+            List<CorrelativoSiNo> items = null;
+
+            try {
+
+                mInputStream = descargarContenido(urlString);
+                items = mParserXmlComodin.parsear(mInputStream);
+
+            } finally {
+                if (mInputStream != null) {
+                    mInputStream.close();
+                }
+            }
+
+            return items;
+
+        }
+
+        private InputStream descargarContenido(String urlString)
+                throws IOException {
+
+            java.net.URL url = new URL(urlString);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setReadTimeout(25000);
+            connection.setConnectTimeout(30000);
+            connection.setRequestMethod("GET");
+            connection.connect();
+
+            return connection.getInputStream();
+
+        }
+
     }
 
 }

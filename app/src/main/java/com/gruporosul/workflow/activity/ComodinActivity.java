@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -32,8 +34,13 @@ import com.gruporosul.workflow.R;
 import com.gruporosul.workflow.bean.Comodin;
 import com.gruporosul.workflow.preferences.PrefManager;
 import com.gruporosul.workflow.volley.AppController;
+import com.mobsandgeeks.saripaar.Rule;
+import com.mobsandgeeks.saripaar.ValidationError;
+import com.mobsandgeeks.saripaar.Validator;
+import com.mobsandgeeks.saripaar.annotation.NotEmpty;
 import com.philliphsu.bottomsheetpickers.date.BottomSheetDatePickerDialog;
 import com.philliphsu.bottomsheetpickers.date.DatePickerDialog;
+import com.philliphsu.bottomsheetpickers.time.numberpad.NumberPadTimePickerDialog;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -47,7 +54,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 
 public class ComodinActivity extends AppCompatActivity
-        implements DatePickerDialog.OnDateSetListener {
+        implements DatePickerDialog.OnDateSetListener, Validator.ValidationListener, NumberPadTimePickerDialog.OnTimeSetListener {
 
     @BindString(R.string.title_activity_comodin)
     String titleActivity;
@@ -56,14 +63,17 @@ public class ComodinActivity extends AppCompatActivity
     @BindView(R.id.titlePasoActual)
     TextView titlePasoActual;
 
+    @NotEmpty
+    TextInputEditText textInputEditText;
+
     private ProgressDialog mProgressDialog;
     private PrefManager mPrefManager;
     private static final String wf_insert_ctrl_flujo_comodin =
-            "http://200.30.160.117:8070/Servicioclientes.asmx/wf_insert_ctrl_flujo_comodin";
+            "http://168.234.51.176:8070/Servicioclientes.asmx/wf_insert_ctrl_flujo_comodin";
 
-    private static final String update_ctrl_flujo = "http://200.30.160.117:8070/Servicioclientes.asmx/wf_update_ctrl_flujo";
+    private static final String update_ctrl_flujo = "http://168.234.51.176:8070/Servicioclientes.asmx/wf_update_ctrl_flujo";
 
-    private static final String insert_ctrl_flujo = "http://200.30.160.117:8070/ServicioClientes.asmx/wf_insert_ctr_flujo";
+    private static final String insert_ctrl_flujo = "http://168.234.51.176:8070/ServicioClientes.asmx/wf_insert_ctr_flujo";
 
 
     private String correlativoFlujo;
@@ -73,7 +83,10 @@ public class ComodinActivity extends AppCompatActivity
     private String usuario;
     private String tipo;
     private String fecha;
+    private String hora;
     List<TextInputLayout> allInputEditText = new ArrayList<>();
+
+    private Validator validator;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,6 +98,9 @@ public class ComodinActivity extends AppCompatActivity
         setToolbar();
 
         mPrefManager = new PrefManager(this);
+
+        validator = new Validator(this);
+        validator.setValidationListener(this);
 
         titlePasoActual.setText(getIntent().getStringExtra("pasoActual"));
 
@@ -122,16 +138,7 @@ public class ComodinActivity extends AppCompatActivity
                 finish();
                 return true;
             case R.id.sendComodin:
-                String[] values = new String[allInputEditText.size()];
-                for(int i=0; i < allInputEditText.size(); i++){
-                    values[i] = allInputEditText.get(i).getEditText().getText().toString();
-                }
-                for (int i = 0; i < Comodin.LISTA_COMODINES.size(); i++) {
-                    Log.e("valores", values[i]);
-                    showDialogInsertComodin(correlativoFlujo, correlativoComodin,
-                            secuencia, Comodin.LISTA_COMODINES.get(i).getComodin().replace(":", ""), values[i],
-                            Comodin.LISTA_COMODINES.get(i).getAfecta(), usuario);
-                }
+                validator.validate();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -155,18 +162,28 @@ public class ComodinActivity extends AppCompatActivity
     }
 
     private TextInputEditText createTextInputEditTexts(String content, String tipo) {
-        TextInputEditText textInputEditText = new TextInputEditText(this);
+        textInputEditText = new TextInputEditText(this);
         textInputEditText.setHint(content);
         textInputEditText.setTag(content);
         switch (tipo.toLowerCase()) {
             case "number":
                 textInputEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+
                 break;
             case "varchar2":
-                textInputEditText.setMinLines(2);
-                textInputEditText.setMaxLines(5);
-                Log.e(":v", "tipo varchar2");
-                textInputEditText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                if (textInputEditText.getHint().equals("HORA")) {
+                    textInputEditText.setMinLines(2);
+                    textInputEditText.setMaxLines(5);
+                    Log.e(":v", "tipo varchar2");
+                    textInputEditText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                    Log.e(":v", "tipo varchar2 HORA");
+                    createNumberPadSheet();
+                } else {
+                    textInputEditText.setMinLines(2);
+                    textInputEditText.setMaxLines(5);
+                    Log.e(":v", "tipo varchar2");
+                    textInputEditText.setInputType(InputType.TYPE_TEXT_FLAG_MULTI_LINE);
+                }
                 break;
             case "date":
                 textInputEditText.setInputType(InputType.TYPE_CLASS_DATETIME);
@@ -198,9 +215,13 @@ public class ComodinActivity extends AppCompatActivity
         return dialog;
     }
 
-    private void showDialogInsertComodin(final String correlativoFlujo, final String correlativoComodin,
-                                         final String secuencia, final String comodin, final String valor,
-                                         final String afecta, final String usuario) {
+    private NumberPadTimePickerDialog createNumberPadSheet() {
+        NumberPadTimePickerDialog pad = NumberPadTimePickerDialog.newInstance(ComodinActivity.this);
+        pad.show(getSupportFragmentManager(), ComodinActivity.class.getSimpleName());
+        return pad;
+    }
+
+    private void showDialogInsertComodin(final String[] values) {
         new MaterialDialog.Builder(this)
                 .title("Enviar comodines")
                 .content("¿Esta seguro de enviar los comodines y dar avance al flujo?")
@@ -213,11 +234,46 @@ public class ComodinActivity extends AppCompatActivity
                         mProgressDialog.setMessage("Enviando datos...");
                         mProgressDialog.setCancelable(false);
                         //mProgressDialog.show();
-                        Toast.makeText(ComodinActivity.this, fecha, Toast.LENGTH_SHORT).show();
+                        //Toast.makeText(ComodinActivity.this, fecha, Toast.LENGTH_SHORT).show();
                         /*insertComodin(correlativoFlujo, correlativoComodin, secuencia, comodin,
                                 valor, afecta, usuario);*/
-                        Log.e("values", correlativoFlujo+ correlativoComodin+ secuencia+ comodin+
-                                valor+ afecta+ usuario);
+                        /*
+                        showDialogInsertComodin(correlativoFlujo, correlativoComodin,
+                        secuencia, Comodin.LISTA_COMODINES.get(i).getComodin().replace(":", ""), values[i],
+                        Comodin.LISTA_COMODINES.get(i).getAfecta(), usuario, values);*/
+                        mProgressDialog = new ProgressDialog(ComodinActivity.this);
+                        mProgressDialog.setTitle("Cargando...");
+                        mProgressDialog.setCancelable(false);
+                        mProgressDialog.show();
+                        int count = 0;
+                        new Thread(
+                                new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        for (int i = 0; i < Comodin.LISTA_COMODINES.size(); i++) {
+                                            //count++;
+                                            insertComodin(correlativoFlujo, correlativoComodin, secuencia,
+                                                    Comodin.LISTA_COMODINES.get(i).getComodin().replace(":", ""),
+                                                    values[i], Comodin.LISTA_COMODINES.get(i).getAfecta(), usuario);
+                                            Log.e("values", correlativoFlujo+ correlativoComodin+ secuencia+
+                                                    Comodin.LISTA_COMODINES.get(i).getComodin().replace(":", "")+
+                                                    values[i]+ Comodin.LISTA_COMODINES.get(i).getAfecta()+ usuario);
+                                        }
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                MainActivity.mainActivity.finish();
+                                                AgrupadorActivity.agrupadorActivity.finish();
+                                                FlujosActivity.flujosActivity.finish();
+                                                ProgresoFlujoActivity.progresoFlujoActivity.finish();
+                                                startActivity(new Intent(ComodinActivity.this, MainActivity.class));
+                                                finish();
+                                            }
+                                        });
+                                    }
+                                }
+                        ).start();
+
                     }
                 })
                 .show();
@@ -276,6 +332,7 @@ public class ComodinActivity extends AppCompatActivity
                 DefaultRetryPolicy.DEFAULT_MAX_RETRIES,
                 DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
         ));
+
         AppController.getInstance().addToRequestQueue(insertComodin);
     }
 
@@ -287,10 +344,8 @@ public class ComodinActivity extends AppCompatActivity
                     @Override
                     public void onResponse(String response) {
                         Log.e("actaulizado", "actualizdado con exito");
-                        mProgressDialog.setCancelable(true);
+                        //mProgressDialog.setCancelable(true);
                         Log.e("insert_flujo", correlativoFlujo + correlativoSiguiente + secuencia + tipo);
-                        insertControlFlujo(correlativoFlujo, correlativoSiguiente, "A",
-                                mPrefManager.getKeyUser(), secuencia, tipo.substring(1,32));
                         if (tipo.length() <= 32) {
                             insertControlFlujo(correlativoFlujo, correlativoSiguiente, "A",
                                     mPrefManager.getKeyUser(), secuencia, tipo);
@@ -350,13 +405,7 @@ public class ComodinActivity extends AppCompatActivity
                     public void onResponse(String response) {
                         Log.e("insert_control", "success" + response);
                         Toast.makeText(ComodinActivity.this, "Datos ingresados con éxito!", Toast.LENGTH_SHORT).show();
-                        mProgressDialog.dismiss();
-                        MainActivity.mainActivity.finish();
-                        AgrupadorActivity.agrupadorActivity.finish();
-                        FlujosActivity.flujosActivity.finish();
-                        ProgresoFlujoActivity.progresoFlujoActivity.finish();
-                        startActivity(new Intent(ComodinActivity.this, MainActivity.class));
-                        finish();
+                        //mProgressDialog.dismiss();
                     }
                 },
                 new Response.ErrorListener() {
@@ -406,6 +455,54 @@ public class ComodinActivity extends AppCompatActivity
                 tx.getEditText().setText(fecha);
             }
         }
-        Toast.makeText(this, fecha, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, fecha, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onTimeSet(ViewGroup viewGroup, int hourOfDay, int minute) {
+        Calendar cal = new java.util.GregorianCalendar();
+        cal.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        cal.set(Calendar.MINUTE, minute);
+        hora = hourOfDay + ":" + minute;
+        for (TextInputLayout tx : allInputEditText) {
+            if (tx.getEditText().getInputType() == InputType.TYPE_TEXT_FLAG_MULTI_LINE) {
+                tx.getEditText().setText(hora);
+            }
+        }
+        Log.e("Time set: ", "" + DateFormat.getTimeFormat(this).format(cal.getTime()));
+    }
+
+    /**
+     * Called when all {@link Rule}s pass.
+     */
+    @Override
+    public void onValidationSucceeded() {
+        String[] values = new String[allInputEditText.size()];
+        for(int i=0; i < allInputEditText.size(); i++){
+            values[i] = allInputEditText.get(i).getEditText().getText().toString();
+        }
+        showDialogInsertComodin(values);
+
+    }
+
+    /**
+     * Called when one or several {@link Rule}s fail.
+     *
+     * @param errors List containing references to the {@link View}s and
+     *               {@link Rule}s that failed.
+     */
+    @Override
+    public void onValidationFailed(List<ValidationError> errors) {
+        for (ValidationError error : errors) {
+            View view = error.getView();
+            String message = error.getCollatedErrorMessage(this);
+
+            // Display error messages ;)
+            if (view instanceof EditText) {
+                ((EditText) view).setError("Este campo es requerido");
+            } else {
+                //Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+            }
+        }
     }
 }
